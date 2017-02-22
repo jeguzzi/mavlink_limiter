@@ -1,0 +1,29 @@
+<launch>
+   <node pkg="mavlink_limiter" type="mavlink_limiter.py" name="mavlink_limiter" output="screen" clear_params='true'>
+      <rosparam param="rates">
+         HEARTBEAT:
+            output: -1
+         ATTITUDE:
+            output: 1
+            input: 1
+         SYS_STATUS:
+            output: 1
+         GLOBAL_POSITION_INT:
+            output: 1
+         GPS_RAW_INT:
+            output: 0
+         AHRS:
+            output: 1
+         POWER_STATUS:
+            output: 1
+         HWSTATUS:
+            output: 1
+         ALL:
+            output: 0
+      </rosparam>
+   </node>
+   <node pkg="mavros" type="gcs_bridge" name="gcs_bridge" output="screen" clear_params="true">
+      <param name="gcs_url" value="udp://:14551@192.168.201.59:14550" />
+      <remap from="mavlink/from" to="mavlink/from/filtered"/>
+   </node>
+</launch>
