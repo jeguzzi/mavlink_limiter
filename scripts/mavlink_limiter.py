@@ -47,7 +47,9 @@ class Limiter(object):
         self.cmd_srv = rospy.ServiceProxy('mavros/cmd/command', CommandLong)
         self.rates = rospy.get_param('~rates')
         self.tol = rospy.get_param('~tolerance', 0.1)
+        self.remap_seq = rospy.get_param('~remap_seq', False)
         self.pub_rates = {}
+        self.seq = 0
         for k, v in self.rates.items():
             i = msg_id(k)
             if i is None:
@@ -60,7 +62,7 @@ class Limiter(object):
                 rate = v['output']
                 self.pub_rates[i] = rate
 
-        rospy.loginfo('Publihing rate %s', self.pub_rates)
+        rospy.loginfo('Publishing rates %s', self.pub_rates)
 
         self.last_message = {}
         self.reset_counters()
@@ -95,6 +97,9 @@ class Limiter(object):
         msg_id = msg.msgid
         self.in_msgs[msg_id] += 1
         if self.should_send(msg_id):
+            if self.remap_seq:
+                msg.seq = self.seq
+                self.seq = (self.seq + 1) % 256
             self.pub.publish(msg)
             self.out_msgs[msg_id] += 1
             self.last_message[msg_id] = rospy.Time.now()
